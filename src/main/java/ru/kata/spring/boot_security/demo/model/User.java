@@ -3,7 +3,17 @@ package ru.kata.spring.boot_security.demo.model;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
@@ -13,13 +23,8 @@ import java.util.Set;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
-
-    @Column(name = "email", unique = true)
-    private String email;
-
-    @Column(name = "password")
-    private String password;
 
     @Column(name = "firstName")
     private String firstName;
@@ -30,26 +35,33 @@ public class User implements UserDetails {
     @Column(name = "age")
     private Integer age;
 
+    @Column(name = "email", unique = true)
+    private String email;
+    
+    @Column(name = "password")
+    private String password;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
-    public String getRoleNames(){
+
+    public String getRoleNames() {
         String result = Arrays.toString(roles.stream().map(Role::getRoleName).map(r -> r.replace("ROLE_", "")).toList().toArray());
-        return result.replace("[","").replace("]","").replace(",","");
+        return result.replace("[", "").replace("]", "").replace(",", "");
     }
 
     public User() {
     }
 
-    public User(String firstName, String lastName, Integer age, String email, String password) {
+    public User(String firstName, String lastName, Integer age, String email, String password, Set<Role> roles) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.age = age;
         this.email = email;
         this.password = password;
+        this.roles = roles;
     }
 
     public Long getId() {
